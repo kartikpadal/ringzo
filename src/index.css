@@ -1,0 +1,38 @@
+/* Reset basic margin & padding */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: black;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Background and centering */
+.hero {
+  min-height: 10vh;
+ 
+  background: linear-gradient(to bottom right, #7e22ce, #2563eb);
+  color: white;
+  border: 2px solid rgb(226, 217, 217);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+/* Title styling */
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+/* Description styling */
+.hero-description {
+  font-size: 1.2rem;
+  max-width: 600px;
+}
+
+
