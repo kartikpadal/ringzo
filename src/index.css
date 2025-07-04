@@ -35,4 +35,88 @@ body {
   max-width: 600px;
 }
 
+/* for search bar */
+.searchbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.searchbar-input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+.searchbar-cross-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+}
+
+.searchbar-cross-icon-button:hover {
+  color: #000;
+}
+
+.searchbar-separator {
+  width: 2px;
+  height: 28px;
+  background-color: #ccc;
+  margin-right: 10px;
+}
+
+.searchbar-arrow-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding-left: 10px;
+  color: #666;
+  display: flex;
+  align-items: center;
+}
+
+.searchbar-arrow-button:hover {
+  color: #000;
+}
+
+.platform-text {
+  text-align: center;
+  margin-top: 10px;
+  color: #2e7d32;
+  font-size: 14px;
+}
+
+.error-text {
+  text-align: center;
+  margin-top: 10px;
+  color: #d32f2f;
+  font-size: 20px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+
+
+
 
