@@ -10,8 +10,8 @@ body {
 .hero {
   min-height: 10vh;
  
-  background: linear-gradient(to bottom right, #7e22ce, #2563eb);
-  color: white;
+  background: linear-gradient(to bottom right,rgb(237, 237, 81),rgb(154, 243, 82));
+  color: rgb(50, 50, 50);
   border: 2px solid rgb(226, 217, 217);
   border-radius: 10px;
   display: flex;
