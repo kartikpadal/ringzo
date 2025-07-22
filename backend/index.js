@@ -19,6 +19,7 @@ app.get('/api/metadata', async (req, res) => {
     return res.status(400).json({ error: 'Missing URL parameter' });
   }
 
+  // the fetching works
   try {
     const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(videoUrl)}&format=json`;
 
