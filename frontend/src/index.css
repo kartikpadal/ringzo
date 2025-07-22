@@ -134,7 +134,7 @@ body {
 
 .result-thumbnail {
   width: 150px;
-  height: 100px;
+  height: 100px;    /* the result looks better in this aspect ratio*/
   object-fit: cover;
   border-radius: 8px;
   margin-right: 12px;
