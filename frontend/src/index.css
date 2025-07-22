@@ -127,14 +127,14 @@ body {
   margin-top: 16px;
   margin-left: 275px;
   padding: 10px;
-  background-color: #f2f2f2;
+  background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 .result-thumbnail {
-  width: 90px;
-  height: 50px;
+  width: 150px;
+  height: 100px;
   object-fit: cover;
   border-radius: 8px;
   margin-right: 12px;
