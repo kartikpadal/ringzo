@@ -30,20 +30,21 @@ function SearchBar({ onSubmit }) {
     }
   };
 
-  const fetchMetadata = async (videoLink) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/metadata?url=${encodeURIComponent(videoLink)}`);
-      if (!response.ok) throw new Error('Failed to fetch metadata');
-      const data = await response.json();
-      setMetadata(data);
-    } catch (err) {
-      console.error('Error fetching metadata:', err);
-      setError('Failed to fetch video info.');
-      setMetadata(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchMetadata = async (videoLink) => {
+  try {
+    const response = await fetch(`http://localhost:5000/api/metadata?url=${encodeURIComponent(videoLink)}`);
+    if (!response.ok) throw new Error('Failed to fetch metadata');
+    const data = await response.json();
+    setMetadata(data);
+  } catch (err) {
+    console.error('Error fetching metadata:', err);
+    setError('Failed to fetch video info.');
+    setMetadata(null);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleSubmit = () => {
     if (!link.trim()) {
