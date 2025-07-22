@@ -120,9 +120,12 @@ body {
 
 
 .searchbar-result {
+  width: 700px;
   display: flex;
   align-items: center;
+  justify-content: center;
   margin-top: 16px;
+  margin-left: 275px;
   padding: 10px;
   background-color: #f2f2f2;
   border-radius: 10px;
