@@ -3,7 +3,7 @@ import { BsArrowRight } from 'react-icons/bs';
 import { FaSpinner, FaSpotify, FaYoutube } from 'react-icons/fa';
 import { RxCross2 } from 'react-icons/rx';
 
-function SearchBar({ onSubmit }) {
+function SearchBar({ onSubmit, onEditClick }) {
   const [link, setLink] = useState('');
   const [error, setError] = useState('');
   const [platform, setPlatform] = useState('');
@@ -125,6 +125,9 @@ function SearchBar({ onSubmit }) {
           <img src={metadata.thumbnail_url} alt="Thumbnail" className="result-thumbnail" />
           <div className="result-info">
             <p className="result-title">{metadata.title}</p>
+            <button className="edit-button" onClick={onEditClick}>
+               Edit
+            </button>
           </div>
         </div>
       )}
