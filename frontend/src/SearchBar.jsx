@@ -126,7 +126,7 @@ function SearchBar({ onSubmit, onEditClick }) {
           <div className="result-info">
             <p className="result-title">{metadata.title}</p>
             <button className="edit-button" onClick={onEditClick}>
-               Edit
+              Edit
             </button>
           </div>
         </div>

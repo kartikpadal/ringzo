@@ -1,6 +1,7 @@
 import {useRef } from 'react'
 import Hero from './Hero.jsx'
 import SearchBar from './SearchBar.jsx'
+import EditSection from './EditSection.jsx'
 import './App.css'
 
 function App() {
