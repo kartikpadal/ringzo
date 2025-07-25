@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BsArrowRight } from 'react-icons/bs';
-import { FaSpinner, FaSpotify, FaYoutube } from 'react-icons/fa';
+import { FaSpinner, FaSpotify, FaYoutube, FaCut } from 'react-icons/fa';
 import { RxCross2 } from 'react-icons/rx';
 
 function SearchBar({ onSubmit, onEditClick }) {
@@ -125,12 +125,14 @@ function SearchBar({ onSubmit, onEditClick }) {
           <img src={metadata.thumbnail_url} alt="Thumbnail" className="result-thumbnail" />
           <div className="result-info">
             <p className="result-title">{metadata.title}</p>
-            <button className="edit-button" onClick={onEditClick}>
-              Edit
-            </button>
           </div>
+          
         </div>
+        
       )}
+      <button className="edit-button" onClick={onEditClick}>
+        <FaCut style={{ marginRight: '15px' }} />Cut 
+      </button>
     </div>
   );
 }
