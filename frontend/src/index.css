@@ -151,7 +151,10 @@ body {
   margin-top: 20px;
   padding: 6px 12px;
   height: 40px;
-  width: 60px;
+  width: auto;
+  display: flex;                  /* 👈 important */
+  align-items: center;           /* vertically center */
+  gap: 6px;                      /* spacing between icon and text */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: rgb(237, 237, 81);
   color: rgb(50, 50, 50);
@@ -160,12 +163,19 @@ body {
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s ease;
+  border: none;                  /* optional */
+}
+
+.edit-button-wrapper {
+  display: flex;
+  justify-content: center; /* centers horizontally */
+  margin-top: 20px;
 }
 
 .edit-button:hover {
   background-color: rgb(154, 243, 82);
   height: 42px;
-  width: 62px;
+  width: 75px;
 }
 
 

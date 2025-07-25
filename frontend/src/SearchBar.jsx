@@ -130,9 +130,13 @@ function SearchBar({ onSubmit, onEditClick }) {
         </div>
         
       )}
-      <button className="edit-button" onClick={onEditClick}>
-        <FaCut style={{ marginRight: '15px' }} />Cut 
-      </button>
+      <div className="edit-button-wrapper">
+        <button className="edit-button" onClick={onEditClick}>
+          <FaCut size={17} className="cut-icon" />
+          <span>Cut</span>
+        </button>
+      </div>
+
     </div>
   );
 }
