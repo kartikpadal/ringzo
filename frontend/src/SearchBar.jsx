@@ -121,6 +121,7 @@ function SearchBar({ onSubmit, onEditClick }) {
       </div>
 
       {metadata && (
+        <>
         <div className="searchbar-result">
           <img src={metadata.thumbnail_url} alt="Thumbnail" className="result-thumbnail" />
           <div className="result-info">
@@ -129,13 +130,15 @@ function SearchBar({ onSubmit, onEditClick }) {
           
         </div>
         
-      )}
+      
       <div className="edit-button-wrapper">
         <button className="edit-button" onClick={onEditClick}>
           <FaCut size={17} className="cut-icon" />
           <span>Cut</span>
         </button>
       </div>
+      </>
+    )}
 
     </div>
   );
