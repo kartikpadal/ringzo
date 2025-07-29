@@ -132,7 +132,7 @@ function SearchBar({ onSubmit, onEditClick }) {
         
       
       <div className="edit-button-wrapper">
-        <button className="edit-button" onClick={onEditClick}>
+        <button className="edit-button" onClick={() => onEditClick(link)}>
           <FaCut size={17} className="cut-icon" />
           <span>Cut</span>
         </button>
