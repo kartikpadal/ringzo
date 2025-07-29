@@ -32,7 +32,7 @@ function EditSection({ videoLink }) {
       );
     }
 
-    return <p>Unsupported platform</p>;
+    return <p>only spotify and youtube for now!</p>;
   };
 
   return (
