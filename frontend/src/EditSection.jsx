@@ -25,6 +25,7 @@ function EditSection({ videoLink }) {
           src={`https://open.spotify.com/embed/track/${videoLink.split('/track/')[1]?.split('?')[0]}`}
           width="300"
           height="80"
+          title="Spotify"
           frameBorder="0"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"
