@@ -197,3 +197,110 @@ body {
   font-size: 1rem;
   color: #555;
 }
+
+
+
+/* Video preview */
+.video-preview {
+  margin: 20px auto;
+  max-width: 700px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+
+/* Trim controls */
+.controls {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.trim-buttons {
+  display: flex;
+  gap: 16px;
+}
+
+.trim-buttons button {
+  padding: 10px 18px;
+  font-size: 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.trim-buttons .start-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.trim-buttons .start-btn:hover {
+  background-color: #43a047;
+}
+
+.trim-buttons .end-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.trim-buttons .end-btn:hover {
+  background-color: #e53935;
+}
+
+/* Slider styling */
+.trim-sliders {
+  width: 80%;
+  max-width: 600px;
+}
+
+.trim-sliders input[type="range"] {
+  width: 100%;
+  appearance: none;
+  height: 6px;
+  border-radius: 5px;
+  background: #ddd;
+  outline: none;
+  margin: 8px 0;
+}
+
+.trim-sliders input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2196f3;
+  cursor: pointer;
+}
+
+.trim-sliders input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2196f3;
+  cursor: pointer;
+}
+
+/* Preview button */
+.preview-btn {
+  padding: 12px 24px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  transition: background 0.2s ease;
+}
+
+.preview-btn:hover {
+  background-color: #1976d2;
+}
