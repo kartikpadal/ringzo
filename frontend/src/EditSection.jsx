@@ -95,18 +95,45 @@ function EditSection({ videoLink }) {
       {/* Controls */}
       {videoLink.includes("youtube.com") || videoLink.includes("youtu.be") ? (
         <div className="controls">
-          <button onClick={handleSetStart}>Set Start</button>
-          <span>Start: {startTime}s</span>
+           {/* Start & End buttons */}
+  <div className="trim-buttons">
+    <button onClick={handleSetStart} className="start-btn">
+      ⏱️ Set Start ({startTime}s)
+    </button>
 
-          <button onClick={handleSetEnd}>Set End</button>
-          <span>End: {endTime}s</span>
+    <button onClick={handleSetEnd} className="end-btn">
+      ⏱️ Set End ({endTime}s)
+    </button>
+  </div>
 
-          <button onClick={handlePlayTrimmed}>▶️ Preview Cut</button>
-        </div>
+  {/* Sliders */}
+  <div className="trim-sliders">
+    <input
+      type="range"
+      min="0"
+      max={duration}
+      value={startTime}
+      onChange={(e) => setStartTime(Number(e.target.value))}
+    />
+    <input
+      type="range"
+      min="0"
+      max={duration}
+      value={endTime}
+      onChange={(e) => setEndTime(Number(e.target.value))}
+    />
+  </div>
+
+    {/* Preview Button */}
+    <button onClick={handlePlayTrimmed} className="preview-btn">
+      ▶️ Preview Cut
+    </button>
+    
+  </div>
       ) : (
         <p>Trimming demo only works with YouTube for now.</p>
       )}
-    </div>
+  </div>
   );
 }
 
