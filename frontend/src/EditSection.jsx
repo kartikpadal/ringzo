@@ -100,15 +100,7 @@ function EditSection({ videoLink }) {
 
       {videoLink.includes("youtube.com") || videoLink.includes("youtu.be") ? (
         <div className="controls">
-          {/* Start & End buttons */}
-          <div className="trim-buttons">
-            <button onClick={handleSetStart} className="btn start-btn">
-              Set Start ({startTime}s)
-            </button>
-            <button onClick={handleSetEnd} className="btn end-btn">
-              Set End ({endTime}s)
-            </button>
-          </div>
+          
 
           {/* Input boxes instead of sliders */}
           <div className="time-inputs">
