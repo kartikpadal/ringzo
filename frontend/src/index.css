@@ -243,7 +243,7 @@ body {
 }
 
 .trim-buttons .start-btn {
-  background-color: #4caf50;
+  background-color: #45c649;
   color: white;
 }
 
@@ -260,38 +260,7 @@ body {
   background-color: #e53935;
 }
 
-/* Slider styling */
-.trim-sliders {
-  width: 80%;
-  max-width: 600px;
-}
 
-.trim-sliders input[type="range"] {
-  width: 100%;
-  appearance: none;
-  height: 6px;
-  border-radius: 5px;
-  background: #ddd;
-  outline: none;
-  margin: 8px 0;
-}
-
-.trim-sliders input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #2196f3;
-  cursor: pointer;
-}
-
-.trim-sliders input[type="range"]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #2196f3;
-  cursor: pointer;
-}
 
 /* Preview button */
 .preview-btn {

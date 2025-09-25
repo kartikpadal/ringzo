@@ -103,19 +103,19 @@ function EditSection({ videoLink }) {
           {/* Start & End buttons */}
           <div className="trim-buttons">
             <button onClick={handleSetStart} className="btn start-btn">
-              Start ({startTime}s)
+              Set Start ({startTime}s)
             </button>
             <button onClick={handleSetEnd} className="btn end-btn">
-              End ({endTime}s)
+              Set End ({endTime}s)
             </button>
           </div>
 
-          {/* Sliders */}
-          <div className="trim-sliders">
+          {/* Input boxes instead of sliders */}
+          <div className="time-inputs">
             <label>
-              Start:
+              Start Time:
               <input
-                type="range"
+                type="number"
                 min="0"
                 max={duration}
                 value={startTime}
@@ -123,9 +123,9 @@ function EditSection({ videoLink }) {
               />
             </label>
             <label>
-              End:
+              End Time:
               <input
-                type="range"
+                type="number"
                 min="0"
                 max={duration}
                 value={endTime}
