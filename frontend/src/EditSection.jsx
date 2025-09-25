@@ -103,10 +103,10 @@ function EditSection({ videoLink }) {
           {/* Start & End buttons */}
           <div className="trim-buttons">
             <button onClick={handleSetStart} className="btn start-btn">
-              ⏱️ Set Start ({startTime}s)
+              Start ({startTime}s)
             </button>
             <button onClick={handleSetEnd} className="btn end-btn">
-              ⏱️ Set End ({endTime}s)
+              End ({endTime}s)
             </button>
           </div>
 
