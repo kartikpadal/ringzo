@@ -125,11 +125,7 @@ function EditSection({ videoLink }) {
 
       {videoLink.includes("youtube.com") || videoLink.includes("youtu.be") ? (
         <div className="controls">
-          {/* Buttons to capture current time */}
-          <div className="set-buttons">
-            <button onClick={handleSetStart}>⏱ Set Start</button>
-            <button onClick={handleSetEnd}>⏱ Set End</button>
-          </div>
+          
 
           {/* Time input boxes */}
           <div className="time-inputs">
