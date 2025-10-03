@@ -8,6 +8,29 @@ function EditSection({ videoLink }) {
   const [player, setPlayer] = useState(null);
   const playerRef = useRef(null);
 
+  // Helper: format seconds -> hh:mm:ss or mm:ss
+  const formatTime = (seconds, showHours) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (!showHours && hrs === 0) {
+      return [mins, secs].map((v) => String(v).padStart(2, "0")).join(":");
+    }
+    return [hrs, mins, secs].map((v) => String(v).padStart(2, "0")).join(":");
+  };
+
+  // Helper: parse hh:mm:ss or mm:ss -> seconds
+  const parseTime = (timeStr) => {
+    const parts = timeStr.split(":").map(Number);
+    if (parts.length === 2) {
+      return parts[0] * 60 + parts[1]; // mm:ss
+    } else if (parts.length === 3) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2]; // hh:mm:ss
+    }
+    return 0;
+  };
+
   // Load YouTube IFrame API
   useEffect(() => {
     if (videoLink?.includes("youtube.com") || videoLink?.includes("youtu.be")) {
@@ -91,6 +114,8 @@ function EditSection({ videoLink }) {
     return <p>Only Spotify and YouTube for now!</p>;
   };
 
+  const showHours = duration >= 3600; // Decide format based on video length
+
   return (
     <div className="edit-section">
       <h2 className="section-title">✂️ Edit Section</h2>
@@ -100,28 +125,28 @@ function EditSection({ videoLink }) {
 
       {videoLink.includes("youtube.com") || videoLink.includes("youtu.be") ? (
         <div className="controls">
-          
+          {/* Buttons to capture current time */}
+          <div className="set-buttons">
+            <button onClick={handleSetStart}>⏱ Set Start</button>
+            <button onClick={handleSetEnd}>⏱ Set End</button>
+          </div>
 
-          {/* Input boxes instead of sliders */}
+          {/* Time input boxes */}
           <div className="time-inputs">
             <label>
               Start Time:
               <input
-                type="number"
-                min="0"
-                max={duration}
-                value={startTime}
-                onChange={(e) => setStartTime(Number(e.target.value))}
+                type="text"
+                value={formatTime(startTime, showHours)}
+                onChange={(e) => setStartTime(parseTime(e.target.value))}
               />
             </label>
             <label>
               End Time:
               <input
-                type="number"
-                min="0"
-                max={duration}
-                value={endTime}
-                onChange={(e) => setEndTime(Number(e.target.value))}
+                type="text"
+                value={formatTime(endTime, showHours)}
+                onChange={(e) => setEndTime(parseTime(e.target.value))}
               />
             </label>
           </div>
