@@ -6,6 +6,7 @@ function EditSection({ videoLink }) {
   const [endTime, setEndTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [player, setPlayer] = useState(null);
+  const [showDownloadButton, setShowDownloadButton] = useState(false);
   const playerRef = useRef(null);
 
   // Helper: format seconds -> hh:mm:ss or mm:ss
@@ -64,23 +65,19 @@ function EditSection({ videoLink }) {
     playerRef.current = ytPlayer;
   };
 
-  const handleSetStart = () => {
-    if (player) setStartTime(Math.floor(player.getCurrentTime()));
-  };
-
-  const handleSetEnd = () => {
-    if (player) setEndTime(Math.floor(player.getCurrentTime()));
-  };
-
   const handlePlayTrimmed = () => {
     if (player && endTime > startTime) {
       player.seekTo(startTime);
       player.playVideo();
 
+      // Show download button (after preview)
+      setShowDownloadButton(false);
+
       const interval = setInterval(() => {
         if (player.getCurrentTime() >= endTime) {
           player.pauseVideo();
           clearInterval(interval);
+          setShowDownloadButton(true); // show after playback ends
         }
       }, 300);
     }
@@ -114,7 +111,7 @@ function EditSection({ videoLink }) {
     return <p>Only Spotify and YouTube for now!</p>;
   };
 
-  const showHours = duration >= 3600; // Decide format based on video length
+  const showHours = duration >= 3600;
 
   return (
     <div className="edit-section">
@@ -125,8 +122,6 @@ function EditSection({ videoLink }) {
 
       {videoLink.includes("youtube.com") || videoLink.includes("youtu.be") ? (
         <div className="controls">
-          
-
           {/* Time input boxes */}
           <div className="time-inputs">
             <label>
@@ -151,6 +146,13 @@ function EditSection({ videoLink }) {
           <button onClick={handlePlayTrimmed} className="btn preview-btn">
             ▶️ Preview Cut
           </button>
+
+          {/* Download Button */}
+          {showDownloadButton && (
+            <button className="btn download-btn">
+              ⬇️ Download Ringtone
+            </button>
+          )}
         </div>
       ) : (
         <p className="note">Trimming demo only works with YouTube for now.</p>
