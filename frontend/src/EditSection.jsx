@@ -70,14 +70,13 @@ function EditSection({ videoLink }) {
       player.seekTo(startTime);
       player.playVideo();
 
-      // Show download button (after preview)
-      setShowDownloadButton(false);
+      // Show download button immediately after clicking Preview
+      setShowDownloadButton(true);
 
       const interval = setInterval(() => {
         if (player.getCurrentTime() >= endTime) {
           player.pauseVideo();
           clearInterval(interval);
-          setShowDownloadButton(true); // show after playback ends
         }
       }, 300);
     }
@@ -147,11 +146,9 @@ function EditSection({ videoLink }) {
             ▶️ Preview Cut
           </button>
 
-          {/* Download Button */}
+          {/* Download Button (shown immediately after clicking preview) */}
           {showDownloadButton && (
-            <button className="btn download-btn">
-              ⬇️ Download Ringtone
-            </button>
+            <button className="btn download-btn">⬇️ Download Ringtone</button>
           )}
         </div>
       ) : (
