@@ -148,7 +148,7 @@ function EditSection({ videoLink }) {
 
           {/* Download Button (shown immediately after clicking preview) */}
           {showDownloadButton && (
-            <button className="btn download-btn">⬇️ Download Ringtone</button>
+            <button className="btn download-btn">⬇️ Download</button>
           )}
         </div>
       ) : (

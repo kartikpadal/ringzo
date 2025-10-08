@@ -275,11 +275,11 @@ body {
 
 /* Download button */
 .download-btn {
-  padding: 10px 22px;
+  padding: 10px 10px;
   background: linear-gradient(to right, #4caf50, #8bc34a);
   color: white;
   border: none;
-  border-radius: 25px;
+  border-radius: 5px;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
