@@ -7,6 +7,7 @@ function EditSection({ videoLink }) {
   const [duration, setDuration] = useState(0);
   const [player, setPlayer] = useState(null);
   const [showDownloadButton, setShowDownloadButton] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // shows Processing...
   const playerRef = useRef(null);
 
   // Helper: format seconds -> hh:mm:ss or mm:ss
@@ -46,9 +47,20 @@ function EditSection({ videoLink }) {
         initPlayer();
       }
     }
+    // cleanup on unmount/change
+    return () => {
+      if (playerRef.current) {
+        try {
+          playerRef.current.destroy();
+        } catch (e) {}
+        playerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoLink]);
 
   const initPlayer = () => {
+    if (!videoLink) return;
     const videoIdMatch = videoLink.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
     const videoId = videoIdMatch ? videoIdMatch[1] : null;
     if (!videoId) return;
@@ -58,7 +70,14 @@ function EditSection({ videoLink }) {
       events: {
         onReady: (event) => {
           setPlayer(event.target);
-          setDuration(event.target.getDuration());
+          // sometimes getDuration() is 0 until ready; poll until > 0
+          const check = setInterval(() => {
+            const d = event.target.getDuration();
+            if (d > 0) {
+              setDuration(Math.floor(d));
+              clearInterval(check);
+            }
+          }, 300);
         },
       },
     });
@@ -70,15 +89,68 @@ function EditSection({ videoLink }) {
       player.seekTo(startTime);
       player.playVideo();
 
-      // Show download button immediately after clicking Preview
+      // show download button immediately per your request
       setShowDownloadButton(true);
 
+      // stop at endTime
       const interval = setInterval(() => {
         if (player.getCurrentTime() >= endTime) {
           player.pauseVideo();
           clearInterval(interval);
         }
       }, 300);
+    } else {
+      alert("Please set a valid start and end time.");
+    }
+  };
+
+  // Download handler — calls backend /api/download and triggers browser download
+  const handleDownload = async () => {
+    if (!videoLink || endTime <= startTime) {
+      return alert("Set a valid start and end time before downloading.");
+    }
+
+    setIsProcessing(true);
+    try {
+      const resp = await fetch("http://localhost:5000/api/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: videoLink,
+          startTime,
+          endTime,
+          title: "ringzo_clip", // optional: send a better title if you have it
+        }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err?.error || "Failed to process download");
+      }
+
+      const blob = await resp.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      // try to obtain filename from headers (fallback to ringzo.mp3)
+      const cd = resp.headers.get("Content-Disposition");
+      let filename = "ringzo.mp3";
+      if (cd) {
+        const match = cd.match(/filename="?(.+)"?/);
+        if (match && match[1]) filename = match[1];
+      }
+
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error("Download error:", err);
+      alert("Download failed: " + err.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -94,9 +166,7 @@ function EditSection({ videoLink }) {
     } else if (videoLink.includes("spotify.com")) {
       return (
         <iframe
-          src={`https://open.spotify.com/embed/track/${
-            videoLink.split("/track/")[1]?.split("?")[0]
-          }`}
+          src={`https://open.spotify.com/embed/track/${videoLink.split("/track/")[1]?.split("?")[0]}`}
           width="300"
           height="80"
           title="Spotify"
@@ -119,9 +189,8 @@ function EditSection({ videoLink }) {
 
       <div className="video-preview">{renderEmbed()}</div>
 
-      {videoLink.includes("youtube.com") || videoLink.includes("youtu.be") ? (
+      {videoLink?.includes("youtube.com") || videoLink?.includes("youtu.be") ? (
         <div className="controls">
-          {/* Time input boxes */}
           <div className="time-inputs">
             <label>
               Start Time:
@@ -141,14 +210,23 @@ function EditSection({ videoLink }) {
             </label>
           </div>
 
-          {/* Preview Button */}
           <button onClick={handlePlayTrimmed} className="btn preview-btn">
             ▶️ Preview Cut
           </button>
 
-          {/* Download Button (shown immediately after clicking preview) */}
+          {/* Download button appears immediately after preview (per your request) */}
           {showDownloadButton && (
-            <button className="btn download-btn">⬇️ Download</button>
+            <button onClick={handleDownload} className="btn download-btn">
+              ⬇️ Download Ringtone
+            </button>
+          )}
+
+          {/* Processing indicator */}
+          {isProcessing && (
+            <div style={{ marginTop: 10 }}>
+              <span className="spin" style={{ marginRight: 8 }}>⏳</span>
+              Processing... It may take a few seconds.
+            </div>
           )}
         </div>
       ) : (
