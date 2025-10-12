@@ -1,4 +1,4 @@
-const ytdl = require("ytdl-core");
+const ytdl = require("@distube/ytdl-core");
 
 const testUrl = "https://www.youtube.com/watch?v=4Bsc2uI_LsM"; // use any working video link
 
