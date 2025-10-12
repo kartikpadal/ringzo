@@ -7,10 +7,9 @@ function EditSection({ videoLink }) {
   const [duration, setDuration] = useState(0);
   const [player, setPlayer] = useState(null);
   const [showDownloadButton, setShowDownloadButton] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false); // shows Processing...
+  const [isProcessing, setIsProcessing] = useState(false);
   const playerRef = useRef(null);
 
-  // Helper: format seconds -> hh:mm:ss or mm:ss
   const formatTime = (seconds, showHours) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -22,41 +21,30 @@ function EditSection({ videoLink }) {
     return [hrs, mins, secs].map((v) => String(v).padStart(2, "0")).join(":");
   };
 
-  // Helper: parse hh:mm:ss or mm:ss -> seconds
   const parseTime = (timeStr) => {
     const parts = timeStr.split(":").map(Number);
-    if (parts.length === 2) {
-      return parts[0] * 60 + parts[1]; // mm:ss
-    } else if (parts.length === 3) {
-      return parts[0] * 3600 + parts[1] * 60 + parts[2]; // hh:mm:ss
-    }
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
     return 0;
   };
 
-  // Load YouTube IFrame API
   useEffect(() => {
     if (videoLink?.includes("youtube.com") || videoLink?.includes("youtu.be")) {
       if (!window.YT) {
         const tag = document.createElement("script");
         tag.src = "https://www.youtube.com/iframe_api";
-        window.onYouTubeIframeAPIReady = () => {
-          initPlayer();
-        };
+        window.onYouTubeIframeAPIReady = () => initPlayer();
         document.body.appendChild(tag);
       } else {
         initPlayer();
       }
     }
-    // cleanup on unmount/change
     return () => {
       if (playerRef.current) {
-        try {
-          playerRef.current.destroy();
-        } catch (e) {}
+        try { playerRef.current.destroy(); } catch (e) {}
         playerRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoLink]);
 
   const initPlayer = () => {
@@ -70,7 +58,6 @@ function EditSection({ videoLink }) {
       events: {
         onReady: (event) => {
           setPlayer(event.target);
-          // sometimes getDuration() is 0 until ready; poll until > 0
           const check = setInterval(() => {
             const d = event.target.getDuration();
             if (d > 0) {
@@ -88,11 +75,8 @@ function EditSection({ videoLink }) {
     if (player && endTime > startTime) {
       player.seekTo(startTime);
       player.playVideo();
-
-      // show download button immediately per your request
       setShowDownloadButton(true);
 
-      // stop at endTime
       const interval = setInterval(() => {
         if (player.getCurrentTime() >= endTime) {
           player.pauseVideo();
@@ -104,7 +88,7 @@ function EditSection({ videoLink }) {
     }
   };
 
-  // Download handler — calls backend /api/download and triggers browser download
+  // --- UPDATED DOWNLOAD HANDLER ---
   const handleDownload = async () => {
     if (!videoLink || endTime <= startTime) {
       return alert("Set a valid start and end time before downloading.");
@@ -119,7 +103,7 @@ function EditSection({ videoLink }) {
           url: videoLink,
           startTime,
           endTime,
-          title: "ringzo_clip", // optional: send a better title if you have it
+          // removed hardcoded title
         }),
       });
 
@@ -131,9 +115,9 @@ function EditSection({ videoLink }) {
       const blob = await resp.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
 
-      // try to obtain filename from headers (fallback to ringzo.mp3)
+      // Get filename from backend
       const cd = resp.headers.get("Content-Disposition");
-      let filename = "ringzo.mp3";
+      let filename = "ringzo.mp3"; // fallback
       if (cd) {
         const match = cd.match(/filename="?(.+)"?/);
         if (match && match[1]) filename = match[1];
@@ -141,7 +125,7 @@ function EditSection({ videoLink }) {
 
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = filename;
+      a.download = filename; // use backend-provided filename
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -189,7 +173,7 @@ function EditSection({ videoLink }) {
 
       <div className="video-preview">{renderEmbed()}</div>
 
-      {videoLink?.includes("youtube.com") || videoLink?.includes("youtu.be") ? (
+      {(videoLink?.includes("youtube.com") || videoLink?.includes("youtu.be")) && (
         <div className="controls">
           <div className="time-inputs">
             <label>
@@ -214,14 +198,12 @@ function EditSection({ videoLink }) {
             ▶️ Preview Cut
           </button>
 
-          {/* Download button appears immediately after preview (per your request) */}
           {showDownloadButton && (
             <button onClick={handleDownload} className="btn download-btn">
               ⬇️ Download Ringtone
             </button>
           )}
 
-          {/* Processing indicator */}
           {isProcessing && (
             <div style={{ marginTop: 10 }}>
               <span className="spin" style={{ marginRight: 8 }}>⏳</span>
@@ -229,7 +211,9 @@ function EditSection({ videoLink }) {
             </div>
           )}
         </div>
-      ) : (
+      )}
+
+      {!videoLink?.includes("youtube.com") && !videoLink?.includes("youtu.be") && (
         <p className="note">Trimming demo only works with YouTube for now.</p>
       )}
     </div>
