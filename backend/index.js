@@ -9,18 +9,19 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
 const PORT = 5000;
-const MAX_CLIP_SECONDS = 1000; // max 16 minutes
+const MAX_CLIP_SECONDS = 1000; //approx 16 minutes
 
-app.use(cors());
+app.use(cors({
+  origin: "*", // allow your frontend
+  exposedHeaders: ["Content-Disposition"], // allow filename to be read if needed
+}));
 app.use(express.json());
 
 console.log("ffmpeg binary:", ffmpegPath);
 
-app.get("/", (req, res) => {
-  res.send("RingZo backend is running 🎶");
-});
+app.get("/", (req, res) => res.send("RingZo backend running 🎶"));
 
-// --------- METADATA ROUTE ---------
+// METADATA
 app.get("/api/metadata", async (req, res) => {
   const videoUrl = req.query.url;
   if (!videoUrl) return res.status(400).json({ error: "Missing URL parameter" });
@@ -29,72 +30,52 @@ app.get("/api/metadata", async (req, res) => {
     const info = await ytdlp(videoUrl, { dumpSingleJson: true, noWarnings: true });
     return res.json({ title: info.title, thumbnail_url: info.thumbnail });
   } catch (err) {
-    console.error("Failed to fetch metadata:", err.message || err);
+    console.error("Failed to fetch metadata:", err);
     return res.status(500).json({ error: "Failed to fetch metadata from YouTube" });
   }
 });
 
-// --------- DOWNLOAD + TRIM ROUTE ---------
-app.post("/api/download", async (req, res) => {
+// DOWNLOAD + TRIM
+app.get("/api/download", async (req, res) => {
   try {
-    const { url, startTime, endTime } = req.body;
-
+    const { url, startTime, endTime } = req.query;
     if (!url || startTime == null || endTime == null)
-      return res.status(400).json({ error: "Missing url, startTime or endTime" });
+      return res.status(400).send("Missing url, startTime, or endTime");
 
     const s = Number(startTime);
     const e = Number(endTime);
     if (!Number.isFinite(s) || !Number.isFinite(e) || e <= s)
-      return res.status(400).json({ error: "Invalid startTime/endTime" });
+      return res.status(400).send("Invalid startTime/endTime");
 
-    const duration = e - s;
-    if (duration > MAX_CLIP_SECONDS)
-      return res.status(400).json({ error: `Requested clip too long. Max ${MAX_CLIP_SECONDS} seconds.` });
+    if (e - s > MAX_CLIP_SECONDS)
+      return res.status(400).send(`Clip too long. Max ${MAX_CLIP_SECONDS} seconds`);
 
-    // Validate YouTube URL
-    if (!/^https?:\/\/(www\.)?youtube\.com\/watch\?v=/.test(url))
-      return res.status(400).json({ error: "Invalid YouTube URL" });
-
-    // Get video title via yt-dlp
-    let videoTitle = "ringzo_clip";
-    try {
-      const info = await ytdlp(url, { dumpSingleJson: true, noWarnings: true });
-      if (info?.title) videoTitle = info.title;
-    } catch (err) {
-      console.error("yt-dlp info error:", err.message || err);
-    }
-
-    const safeTitle = videoTitle.replace(/[<>:"/\\|?*\x00-\x1F]/g, "").slice(0, 100);
+    // Fetch info for title
+    const info = await ytdlp(url, { dumpSingleJson: true, noWarnings: true });
+    const safeTitle = info.title.replace(/[<>:"/\\|?*\x00-\x1F]/g, "").slice(0, 100);
     const filename = `${safeTitle}.mp3`;
 
-    // Send headers first
-    res.setHeader("Content-Type", "audio/mpeg");
+    // headers
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Type", "audio/mpeg");
 
-    // Stream audio directly from yt-dlp through ffmpeg
-    const audioProcess = ytdlp.exec(url, { format: "bestaudio", output: "-" });
-
-    ffmpeg(audioProcess.stdout)
+    // pipe yt-dlp -> ffmpeg -> res
+    ffmpeg(ytdlp.exec(url, { format: "bestaudio", output: "-" }).stdout)
       .audioCodec("libmp3lame")
       .audioBitrate(128)
-      .format("mp3")
       .setStartTime(s)
-      .setDuration(duration)
+      .setDuration(e - s)
+      .format("mp3")
       .on("start", cmd => console.log("ffmpeg started:", cmd))
       .on("error", err => {
-        console.error("ffmpeg error:", err.message || err);
-        if (!res.headersSent) res.status(500).json({ error: "Processing failed." });
+        console.error("ffmpeg error:", err);
+        try { res.end(); } catch {}
       })
       .pipe(res, { end: true });
 
-    res.on("close", () => {
-      console.log("Client connection closed/aborted");
-      try { audioProcess.kill("SIGKILL"); } catch (_) {}
-    });
-
   } catch (err) {
-    console.error("Download route error:", err.message || err);
-    if (!res.headersSent) res.status(500).json({ error: "Server error during download." });
+    console.error("Download error:", err);
+    res.status(500).send("Server error during download");
   }
 });
 

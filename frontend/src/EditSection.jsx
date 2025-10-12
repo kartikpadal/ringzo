@@ -14,14 +14,14 @@ function EditSection({ videoLink }) {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    if (!showHours && hrs === 0) return [mins, secs].map(v => String(v).padStart(2, "0")).join(":");
-    return [hrs, mins, secs].map(v => String(v).padStart(2, "0")).join(":");
+    if (!showHours && hrs === 0) return [mins, secs].map(v => String(v).padStart(2,"0")).join(":");
+    return [hrs, mins, secs].map(v => String(v).padStart(2,"0")).join(":");
   };
 
   const parseTime = (timeStr) => {
     const parts = timeStr.split(":").map(Number);
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0]*60 + parts[1];
+    if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
     return 0;
   };
 
@@ -32,13 +32,11 @@ function EditSection({ videoLink }) {
         tag.src = "https://www.youtube.com/iframe_api";
         window.onYouTubeIframeAPIReady = () => initPlayer();
         document.body.appendChild(tag);
-      } else {
-        initPlayer();
-      }
+      } else initPlayer();
     }
     return () => {
       if (playerRef.current) {
-        try { playerRef.current.destroy(); } catch (e) {}
+        try { playerRef.current.destroy(); } catch {}
         playerRef.current = null;
       }
     };
@@ -57,7 +55,10 @@ function EditSection({ videoLink }) {
           setPlayer(event.target);
           const check = setInterval(() => {
             const d = event.target.getDuration();
-            if (d > 0) { setDuration(Math.floor(d)); clearInterval(check); }
+            if (d > 0) {
+              setDuration(Math.floor(d));
+              clearInterval(check);
+            }
           }, 300);
         },
       },
@@ -77,78 +78,23 @@ function EditSection({ videoLink }) {
           clearInterval(interval);
         }
       }, 300);
-    } else {
-      alert("Please set a valid start and end time.");
-    }
-  };
-
-  // --- DOWNLOAD HANDLER ---
-  const handleDownload = async () => {
-    if (!videoLink || endTime <= startTime) return alert("Set a valid start and end time before downloading.");
-
-    setIsProcessing(true);
-    try {
-      const resp = await fetch("http://localhost:5000/api/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: videoLink, startTime, endTime }),
-      });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err?.error || "Failed to process download");
-      }
-
-      const blob = await resp.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-
-      // Get filename from backend
-      const cd = resp.headers.get("Content-Disposition");
-      let filename = "ringzo.mp3";
-      if (cd) {
-        const match = cd.match(/filename="?(.+)"?/);
-        if (match && match[1]) filename = match[1];
-      }
-
-      const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(downloadUrl);
-
-    } catch (err) {
-      console.error("Download error:", err);
-      alert("Download failed: " + err.message);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const renderEmbed = () => {
-    if (!videoLink) return null;
-    if (videoLink.includes("youtube.com") || videoLink.includes("youtu.be")) {
-      return <div className="video-wrapper"><div id="yt-player"></div></div>;
-    } else if (videoLink.includes("spotify.com")) {
-      return <iframe
-        src={`https://open.spotify.com/embed/track/${videoLink.split("/track/")[1]?.split("?")[0]}`}
-        width="300" height="80" title="Spotify"
-        frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"
-      ></iframe>;
-    }
-    return <p>Only Spotify and YouTube for now!</p>;
+    } else alert("Please set a valid start and end time.");
   };
 
   const showHours = duration >= 3600;
 
   return (
     <div className="edit-section">
-      <h2 className="section-title">✂️ Edit Section</h2>
-      <p className="section-subtitle">Trim your favorite part of the track</p>
-      <div className="video-preview">{renderEmbed()}</div>
+      <h2>✂️ Edit Section</h2>
+      <p>Trim your favorite part of the track</p>
 
-      {(videoLink?.includes("youtube.com") || videoLink?.includes("youtu.be")) && (
+      <div className="video-preview">
+        {videoLink && (videoLink.includes("youtube.com") || videoLink.includes("youtu.be")) ? (
+          <div id="yt-player"></div>
+        ) : null}
+      </div>
+
+      {videoLink?.includes("youtube.com") || videoLink?.includes("youtu.be") ? (
         <div className="controls">
           <div className="time-inputs">
             <label>
@@ -161,14 +107,22 @@ function EditSection({ videoLink }) {
             </label>
           </div>
 
-          <button onClick={handlePlayTrimmed} className="btn preview-btn">▶️ Preview Cut</button>
-          {showDownloadButton && <button onClick={handleDownload} className="btn download-btn">⬇️ Download</button>}
+          <button onClick={handlePlayTrimmed}>▶️ Preview Cut</button>
 
-          {isProcessing && <div style={{ marginTop: 10 }}><span className="spin" style={{ marginRight: 8 }}>⏳</span>Processing... It may take a few seconds.</div>}
+          {showDownloadButton && (
+            <a
+              href={`http://localhost:5000/api/download?url=${encodeURIComponent(videoLink)}&startTime=${startTime}&endTime=${endTime}`}
+              download
+              className="btn download-btn"
+            >
+              ⬇️ Download
+            </a>
+          )}
+
         </div>
+      ) : (
+        <p>Trimming demo only works with YouTube for now.</p>
       )}
-
-      {!videoLink?.includes("youtube.com") && !videoLink?.includes("youtu.be") && <p className="note">Trimming demo only works with YouTube for now.</p>}
     </div>
   );
 }
