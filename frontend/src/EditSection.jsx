@@ -14,10 +14,7 @@ function EditSection({ videoLink }) {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-
-    if (!showHours && hrs === 0) {
-      return [mins, secs].map(v => String(v).padStart(2, "0")).join(":");
-    }
+    if (!showHours && hrs === 0) return [mins, secs].map(v => String(v).padStart(2, "0")).join(":");
     return [hrs, mins, secs].map(v => String(v).padStart(2, "0")).join(":");
   };
 
@@ -60,10 +57,7 @@ function EditSection({ videoLink }) {
           setPlayer(event.target);
           const check = setInterval(() => {
             const d = event.target.getDuration();
-            if (d > 0) {
-              setDuration(Math.floor(d));
-              clearInterval(check);
-            }
+            if (d > 0) { setDuration(Math.floor(d)); clearInterval(check); }
           }, 300);
         },
       },
@@ -88,23 +82,16 @@ function EditSection({ videoLink }) {
     }
   };
 
-  // --- UPDATED DOWNLOAD HANDLER ---
+  // --- DOWNLOAD HANDLER ---
   const handleDownload = async () => {
-    if (!videoLink || endTime <= startTime) {
-      return alert("Set a valid start and end time before downloading.");
-    }
+    if (!videoLink || endTime <= startTime) return alert("Set a valid start and end time before downloading.");
 
     setIsProcessing(true);
     try {
       const resp = await fetch("http://localhost:5000/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url: videoLink,
-          startTime,
-          endTime,
-          // no hardcoded title
-        }),
+        body: JSON.stringify({ url: videoLink, startTime, endTime }),
       });
 
       if (!resp.ok) {
@@ -115,9 +102,9 @@ function EditSection({ videoLink }) {
       const blob = await resp.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
 
-      // --- GET FILENAME FROM BACKEND ---
+      // Get filename from backend
       const cd = resp.headers.get("Content-Disposition");
-      let filename = "ringzo.mp3"; // fallback
+      let filename = "ringzo.mp3";
       if (cd) {
         const match = cd.match(/filename="?(.+)"?/);
         if (match && match[1]) filename = match[1];
@@ -125,11 +112,12 @@ function EditSection({ videoLink }) {
 
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = filename; // ✅ use backend-provided filename
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(downloadUrl);
+
     } catch (err) {
       console.error("Download error:", err);
       alert("Download failed: " + err.message);
@@ -140,27 +128,15 @@ function EditSection({ videoLink }) {
 
   const renderEmbed = () => {
     if (!videoLink) return null;
-
     if (videoLink.includes("youtube.com") || videoLink.includes("youtu.be")) {
-      return (
-        <div className="video-wrapper">
-          <div id="yt-player"></div>
-        </div>
-      );
+      return <div className="video-wrapper"><div id="yt-player"></div></div>;
     } else if (videoLink.includes("spotify.com")) {
-      return (
-        <iframe
-          src={`https://open.spotify.com/embed/track/${videoLink.split("/track/")[1]?.split("?")[0]}`}
-          width="300"
-          height="80"
-          title="Spotify"
-          frameBorder="0"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-        ></iframe>
-      );
+      return <iframe
+        src={`https://open.spotify.com/embed/track/${videoLink.split("/track/")[1]?.split("?")[0]}`}
+        width="300" height="80" title="Spotify"
+        frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"
+      ></iframe>;
     }
-
     return <p>Only Spotify and YouTube for now!</p>;
   };
 
@@ -170,7 +146,6 @@ function EditSection({ videoLink }) {
     <div className="edit-section">
       <h2 className="section-title">✂️ Edit Section</h2>
       <p className="section-subtitle">Trim your favorite part of the track</p>
-
       <div className="video-preview">{renderEmbed()}</div>
 
       {(videoLink?.includes("youtube.com") || videoLink?.includes("youtu.be")) && (
@@ -178,44 +153,22 @@ function EditSection({ videoLink }) {
           <div className="time-inputs">
             <label>
               Start Time:
-              <input
-                type="text"
-                value={formatTime(startTime, showHours)}
-                onChange={(e) => setStartTime(parseTime(e.target.value))}
-              />
+              <input type="text" value={formatTime(startTime, showHours)} onChange={e => setStartTime(parseTime(e.target.value))} />
             </label>
             <label>
               End Time:
-              <input
-                type="text"
-                value={formatTime(endTime, showHours)}
-                onChange={(e) => setEndTime(parseTime(e.target.value))}
-              />
+              <input type="text" value={formatTime(endTime, showHours)} onChange={e => setEndTime(parseTime(e.target.value))} />
             </label>
           </div>
 
-          <button onClick={handlePlayTrimmed} className="btn preview-btn">
-            ▶️ Preview Cut
-          </button>
+          <button onClick={handlePlayTrimmed} className="btn preview-btn">▶️ Preview Cut</button>
+          {showDownloadButton && <button onClick={handleDownload} className="btn download-btn">⬇️ Download</button>}
 
-          {showDownloadButton && (
-            <button onClick={handleDownload} className="btn download-btn">
-              ⬇️ Download Ringtone
-            </button>
-          )}
-
-          {isProcessing && (
-            <div style={{ marginTop: 10 }}>
-              <span className="spin" style={{ marginRight: 8 }}>⏳</span>
-              Processing... It may take a few seconds.
-            </div>
-          )}
+          {isProcessing && <div style={{ marginTop: 10 }}><span className="spin" style={{ marginRight: 8 }}>⏳</span>Processing... It may take a few seconds.</div>}
         </div>
       )}
 
-      {!videoLink?.includes("youtube.com") && !videoLink?.includes("youtu.be") && (
-        <p className="note">Trimming demo only works with YouTube for now.</p>
-      )}
+      {!videoLink?.includes("youtube.com") && !videoLink?.includes("youtu.be") && <p className="note">Trimming demo only works with YouTube for now.</p>}
     </div>
   );
 }
