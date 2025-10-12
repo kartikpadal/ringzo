@@ -16,9 +16,9 @@ function EditSection({ videoLink }) {
     const secs = Math.floor(seconds % 60);
 
     if (!showHours && hrs === 0) {
-      return [mins, secs].map((v) => String(v).padStart(2, "0")).join(":");
+      return [mins, secs].map(v => String(v).padStart(2, "0")).join(":");
     }
-    return [hrs, mins, secs].map((v) => String(v).padStart(2, "0")).join(":");
+    return [hrs, mins, secs].map(v => String(v).padStart(2, "0")).join(":");
   };
 
   const parseTime = (timeStr) => {
@@ -103,7 +103,7 @@ function EditSection({ videoLink }) {
           url: videoLink,
           startTime,
           endTime,
-          // removed hardcoded title
+          // no hardcoded title
         }),
       });
 
@@ -115,7 +115,7 @@ function EditSection({ videoLink }) {
       const blob = await resp.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
 
-      // Get filename from backend
+      // --- GET FILENAME FROM BACKEND ---
       const cd = resp.headers.get("Content-Disposition");
       let filename = "ringzo.mp3"; // fallback
       if (cd) {
@@ -125,7 +125,7 @@ function EditSection({ videoLink }) {
 
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = filename; // use backend-provided filename
+      a.download = filename; // ✅ use backend-provided filename
       document.body.appendChild(a);
       a.click();
       a.remove();

@@ -69,18 +69,16 @@ app.post("/api/download", async (req, res) => {
     const safeTitle = videoTitle.replace(/[<>:"/\\|?*\x00-\x1F]/g, "").slice(0, 100);
     const filename = `${safeTitle}.mp3`;
 
-    // Set proper headers for browser download
+    // Set headers for proper browser download
     res.setHeader("Content-Type", "audio/mpeg");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
 
-    // PassThrough stream to ensure browser gets complete file
+    // PassThrough stream ensures complete file delivery
     const stream = new PassThrough();
 
-    // Use yt-dlp to get the audio stream
-    const audioProcess = ytdlp.exec(url, { format: "bestaudio", output: "-" });
-
-    // Pipe through ffmpeg to trim and convert to mp3
-    ffmpeg(audioProcess.stdout)
+    // Pipe yt-dlp audio to ffmpeg for trimming + mp3 conversion
+    ffmpeg(ytdlp.exec(url, { format: "bestaudio", output: "-" }).stdout)
       .audioCodec("libmp3lame")
       .audioBitrate(128)
       .format("mp3")
@@ -96,12 +94,12 @@ app.post("/api/download", async (req, res) => {
         console.log("✅ ffmpeg finished streaming");
         stream.end();
       })
-      .pipe(stream);
+      .pipe(stream, { end: true }); // ✅ this fixes .mp3_ issue
 
-    // Pipe the final stream to response
+    // Pipe final stream to response
     stream.pipe(res);
 
-    // Clean up if client disconnects
+    // Cleanup if client disconnects
     res.on("close", () => {
       console.log("Client connection closed/aborted");
       try { audioProcess.kill("SIGKILL"); } catch (_) {}
