@@ -1,11 +1,10 @@
 // backend/index.js
 const express = require("express");
 const cors = require("cors");
-const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
-const ytdl = require("@distube/ytdl-core");
+const { exec } = require("child_process");
+const ytdlp = require("yt-dlp-exec");
 const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = require("ffmpeg-static");
-
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
@@ -23,26 +22,21 @@ app.get("/", (req, res) => {
   res.send("RingZo backend is running 🎶");
 });
 
+// ---------- YOUTUBE METADATA FETCH ----------
 app.get("/api/metadata", async (req, res) => {
   const videoUrl = req.query.url;
-
   if (!videoUrl) {
     return res.status(400).json({ error: "Missing URL parameter" });
   }
 
   try {
-    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(videoUrl)}&format=json`;
-
-    const response = await fetch(oembedUrl);
-    if (!response.ok) {
-      throw new Error("YouTube responded with an error");
-    }
-
-    const data = await response.json();
-
+    const info = await ytdlp(videoUrl, {
+      dumpSingleJson: true,
+      noWarnings: true,
+    });
     return res.json({
-      title: data.title,
-      thumbnail_url: data.thumbnail_url,
+      title: info.title,
+      thumbnail_url: info.thumbnail,
     });
   } catch (error) {
     console.error("Failed to fetch metadata:", error.message || error);
@@ -50,12 +44,7 @@ app.get("/api/metadata", async (req, res) => {
   }
 });
 
-/**
- * POST /api/download
- * body: { url: string, startTime: number (seconds), endTime: number (seconds), title?: string }
- *
- * Streams back an MP3 file trimmed to the requested segment.
- */
+// ---------- DOWNLOAD + TRIM ROUTE ----------
 app.post("/api/download", async (req, res) => {
   try {
     const { url, startTime, endTime, title } = req.body;
@@ -77,71 +66,56 @@ app.post("/api/download", async (req, res) => {
     }
 
     // Validate YouTube URL
-    if (!ytdl.validateURL(url)) {
+    if (!/^https?:\/\/(www\.)?youtube\.com\/watch\?v=/.test(url)) {
       return res.status(400).json({ error: "Invalid YouTube URL" });
     }
 
-    // Try to get video info (used to create a nice filename if not provided)
-    let info;
+    // Get video title
+    let videoTitle = "ringzo_clip";
     try {
-      info = await ytdl.getInfo(url);
+      const info = await ytdlp(url, { dumpSingleJson: true, noWarnings: true });
+      if (info && info.title) videoTitle = info.title;
     } catch (err) {
-      console.error("ytdl getInfo error:", err.message || err);
-      return res.status(500).json({ error: "Failed to get video info" });
+      console.error("yt-dlp info error:", err.message || err);
     }
 
-    const videoTitle = (typeof title === "string" && title.trim().length > 0) ? title.trim() : (info?.videoDetails?.title || "ringzo_clip");
     const safeTitle = videoTitle.replace(/[<>:"/\\|?*\x00-\x1F]/g, "").slice(0, 100);
     const filename = `${safeTitle}.mp3`;
 
-    // Expose header and set download headers
+    // Set response headers
     res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
     res.setHeader("Content-Type", "audio/mpeg");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
 
-    // Start streaming audio from YouTube
-    const audioStream = ytdl(url, {
-      filter: "audioonly",
-      quality: "highestaudio",
-      highWaterMark: 1 << 25, // reduce stalling
+    // Run yt-dlp and pipe to ffmpeg for trimming and mp3 conversion
+    console.log("Starting yt-dlp + ffmpeg pipeline...");
+    const audioProcess = ytdlp.exec(url, {
+      format: "bestaudio",
+      output: "-", // stream to stdout
     });
 
-    // If client disconnects, destroy streams and kill ffmpeg
-    let ffmpegCommand = null;
-    res.on("close", () => {
-      console.log("Client connection closed/aborted");
-      try { audioStream.destroy(); } catch (e) {}
-      try { if (ffmpegCommand && ffmpegCommand.kill) ffmpegCommand.kill("SIGKILL"); } catch (e) {}
-    });
-
-    // Pipe through ffmpeg to trim and convert to mp3
-    ffmpegCommand = ffmpeg(audioStream)
+    let ffmpegCommand = ffmpeg(audioProcess.stdout)
       .audioCodec("libmp3lame")
       .audioBitrate(128)
       .format("mp3")
       .setStartTime(s)
       .setDuration(duration)
-      .on("start", (cmd) => {
-        console.log("ffmpeg started:", cmd);
-      })
-      .on("codecData", (data) => {
-        // codecData is helpful for debugging
-        console.log("codecData:", data);
-      })
+      .on("start", (cmd) => console.log("ffmpeg started:", cmd))
       .on("error", (err) => {
         console.error("ffmpeg error:", err.message || err);
-        if (!res.headersSent) {
-          res.status(500).json({ error: "Processing failed." });
-        } else {
-          try { res.end(); } catch (e) {}
-        }
+        if (!res.headersSent) res.status(500).json({ error: "Processing failed." });
+        else res.end();
       })
-      .on("end", () => {
-        console.log("ffmpeg finished streaming");
-      });
+      .on("end", () => console.log("✅ ffmpeg finished streaming"))
+      .pipe(res, { end: true });
 
-    // stream the mp3 to the client
-    ffmpegCommand.pipe(res, { end: true });
+    // Clean up if client disconnects
+    res.on("close", () => {
+      console.log("Client connection closed/aborted");
+      try { audioProcess.kill("SIGKILL"); } catch (_) {}
+      try { if (ffmpegCommand && ffmpegCommand.kill) ffmpegCommand.kill("SIGKILL"); } catch (_) {}
+    });
+
   } catch (err) {
     console.error("Download route error:", err.message || err);
     if (!res.headersSent) {

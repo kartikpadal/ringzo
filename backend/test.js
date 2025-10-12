@@ -1,4 +1,5 @@
-const ytdl = require("@distube/ytdl-core");
+const { exec } = require("child_process");
+const ytdlp = require("yt-dlp-exec");
 
 const testUrl = "https://www.youtube.com/watch?v=4Bsc2uI_LsM"; // use any working video link
 
