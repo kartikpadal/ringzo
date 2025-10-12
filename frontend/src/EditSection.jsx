@@ -98,16 +98,16 @@ function EditSection({ videoLink }) {
         <div className="controls">
           <div className="time-inputs">
             <label>
-              Start Time:
+              Start :
               <input type="text" value={formatTime(startTime, showHours)} onChange={e => setStartTime(parseTime(e.target.value))} />
             </label>
             <label>
-              End Time:
+              End :
               <input type="text" value={formatTime(endTime, showHours)} onChange={e => setEndTime(parseTime(e.target.value))} />
             </label>
           </div>
 
-          <button onClick={handlePlayTrimmed}>▶️ Preview Cut</button>
+          <button className="preview-btn" onClick={handlePlayTrimmed}>▶️ Preview Cut</button>
 
           {showDownloadButton && (
             <a
