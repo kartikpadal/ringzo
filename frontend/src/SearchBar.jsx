@@ -32,7 +32,7 @@ function SearchBar({ onSubmit, onEditClick }) {
 
  const fetchMetadata = async (videoLink) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/metadata?url=${encodeURIComponent(videoLink)}`);
+    const response = await fetch(`https://ringzo-backend.onrender.com/api/metadata?url=${encodeURIComponent(videoLink)}`);
     if (!response.ok) throw new Error('Failed to fetch metadata');
     const data = await response.json();
     setMetadata(data);

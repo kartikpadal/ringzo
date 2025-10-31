@@ -111,7 +111,7 @@ function EditSection({ videoLink }) {
 
           {showDownloadButton && (
             <a
-              href={`http://localhost:5000/api/download?url=${encodeURIComponent(videoLink)}&startTime=${startTime}&endTime=${endTime}`}
+              href={`https://ringzo-backend.onrender.com/api/download?url=${encodeURIComponent(videoLink)}&startTime=${startTime}&endTime=${endTime}`}
               download
               className="btn download-btn"
             >

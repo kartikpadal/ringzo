@@ -12,7 +12,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ✅ Update with your verified yt-dlp path
-const YTDLP_PATH = "C:\\Users\\Padal\\AppData\\Roaming\\Python\\Python313\\Scripts\\yt-dlp.exe";
+const YTDLP_PATH =
+  process.env.YTDLP_PATH ||
+  (process.platform === "win32"
+    ? "C:\\Users\\Padal\\AppData\\Roaming\\Python\\Python313\\Scripts\\yt-dlp.exe"
+    : "/usr/bin/yt-dlp");
+
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
