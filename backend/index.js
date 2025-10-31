@@ -1,9 +1,9 @@
-// backend/index.js
 const express = require("express");
 const cors = require("cors");
 const ytdlp = require("yt-dlp-exec");
 const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = require("ffmpeg-static");
+const { spawn } = require("child_process");
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -12,8 +12,8 @@ const PORT = 5000;
 const MAX_CLIP_SECONDS = 1000; // approx 16 minutes
 
 app.use(cors({
-  origin: "*", // allow your frontend
-  exposedHeaders: ["Content-Disposition"], // allow filename to be read if needed
+  origin: "*",
+  exposedHeaders: ["Content-Disposition"],
 }));
 app.use(express.json());
 
@@ -63,11 +63,9 @@ app.get("/api/download", async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.setHeader("Content-Type", "audio/mpeg");
 
-    // ✅ FIX: use ytdlp.spawn() to get a live stream
-    const ytProcess = ytdlp.spawn(url, {
-      format: "bestaudio",
-      output: "-", // send output to stdout
-      quiet: true,
+    // ✅ FIX: manually spawn yt-dlp for stream
+    const ytProcess = spawn("yt-dlp", ["-f", "bestaudio", "-o", "-", url], {
+      stdio: ["ignore", "pipe", "inherit"],
     });
 
     // ✅ Pipe yt-dlp -> ffmpeg -> response
