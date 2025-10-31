@@ -9,7 +9,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
 const PORT = 5000;
-const MAX_CLIP_SECONDS = 1000; //approx 16 minutes
+const MAX_CLIP_SECONDS = 1000; // approx 16 minutes
 
 app.use(cors({
   origin: "*", // allow your frontend
@@ -21,7 +21,9 @@ console.log("ffmpeg binary:", ffmpegPath);
 
 app.get("/", (req, res) => res.send("RingZo backend running 🎶"));
 
-// METADATA
+// =============================================================
+// 🎵 FETCH METADATA
+// =============================================================
 app.get("/api/metadata", async (req, res) => {
   const videoUrl = req.query.url;
   if (!videoUrl) return res.status(400).json({ error: "Missing URL parameter" });
@@ -35,7 +37,9 @@ app.get("/api/metadata", async (req, res) => {
   }
 });
 
-// DOWNLOAD + TRIM
+// =============================================================
+// 🎧 DOWNLOAD + TRIM AUDIO
+// =============================================================
 app.get("/api/download", async (req, res) => {
   try {
     const { url, startTime, endTime } = req.query;
@@ -50,27 +54,37 @@ app.get("/api/download", async (req, res) => {
     if (e - s > MAX_CLIP_SECONDS)
       return res.status(400).send(`Clip too long. Max ${MAX_CLIP_SECONDS} seconds`);
 
-    // Fetch info for title
+    // Get video info for filename
     const info = await ytdlp(url, { dumpSingleJson: true, noWarnings: true });
     const safeTitle = info.title.replace(/[<>:"/\\|?*\x00-\x1F]/g, "").slice(0, 100);
     const filename = `${safeTitle}.mp3`;
 
-    // headers
+    // Set headers
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.setHeader("Content-Type", "audio/mpeg");
 
-    // pipe yt-dlp -> ffmpeg -> res
-    ffmpeg(ytdlp.exec(url, { format: "bestaudio", output: "-" }).stdout)
+    // ✅ FIX: use ytdlp.spawn() to get a live stream
+    const ytProcess = ytdlp.spawn(url, {
+      format: "bestaudio",
+      output: "-", // send output to stdout
+      quiet: true,
+    });
+
+    // ✅ Pipe yt-dlp -> ffmpeg -> response
+    ffmpeg(ytProcess.stdout)
+      .setFfmpegPath(ffmpegPath)
       .audioCodec("libmp3lame")
       .audioBitrate(128)
       .setStartTime(s)
       .setDuration(e - s)
       .format("mp3")
-      .on("start", cmd => console.log("ffmpeg started:", cmd))
-      .on("error", err => {
+      .on("start", (cmd) => console.log("ffmpeg started:", cmd))
+      .on("stderr", (line) => console.log("ffmpeg log:", line))
+      .on("error", (err) => {
         console.error("ffmpeg error:", err);
         try { res.end(); } catch {}
       })
+      .on("end", () => console.log("✅ Conversion finished successfully"))
       .pipe(res, { end: true });
 
   } catch (err) {
@@ -79,4 +93,5 @@ app.get("/api/download", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// =============================================================
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
